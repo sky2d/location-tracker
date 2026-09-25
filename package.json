@@ -1,0 +1,28 @@
+{
+  "name": "real-time-location-tracking",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portfolio-grade real-time location tracking system",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "simulator": "node server/scripts/simulator.js",
+    "docker": "docker-compose up",
+    "dev:all": "concurrently -n \"DOCKER,SERVER,CLIENT,SIMULATOR\" -c \"bgYellow.bold,bgBlue.bold,bgMagenta.bold,bgGreen.bold\" \"npm run docker\" \"npm run dev:server\" \"npm run dev:client\" \"npm run simulator\""
+  },
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
