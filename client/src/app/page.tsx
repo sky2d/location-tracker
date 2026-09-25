@@ -1,11 +1,12 @@
 'use client';
 
 import { useLiveLocations } from '../hooks/useLiveLocations';
-import DashboardGlobe from '../components/DashboardGlobe';
+import DashboardMap from '../components/DashboardMap';
 import RegistrationTracker from '../components/RegistrationTracker';
 
 export default function Home() {
-  const locations = useLiveLocations('http://localhost:4000'); // Connect to our Node backend
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const locations = useLiveLocations(apiUrl); // Connect to our Node backend
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between bg-black">
@@ -22,8 +23,8 @@ export default function Home() {
       {/* Registration and Real-time Geolocation Tracker */}
       <RegistrationTracker />
 
-      {/* 3D Globe visualization */}
-      <DashboardGlobe locations={locations} />
+      {/* 2D Leaflet Street Map visualization */}
+      <DashboardMap locations={locations} />
     </main>
   );
 }

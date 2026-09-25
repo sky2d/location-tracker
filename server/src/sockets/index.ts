@@ -1,5 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { redis } from '../config/redis';
+import { updateLocation } from '../services/location.service';
 
 export function setupWebSockets(io: Server) {
   io.on('connection', (socket: Socket) => {
@@ -9,10 +10,15 @@ export function setupWebSockets(io: Server) {
     socket.on('subscribe_dashboard', async () => {
       socket.join('live-locations');
       console.log(`[Socket] Client ${socket.id} joined live-locations`);
-      
-      // Optionally, fetch initial known locations from Redis and send them back
-      // Since it's a GEO index, fetching all without bounds might be tricky,
-      // but in a real app we might fetch recent data.
+    });
+
+    // Client sends their live location
+    socket.on('send_location', async (data: { memberId: string, lat: number, lng: number }) => {
+      try {
+        await updateLocation(data.memberId, data.lat, data.lng);
+      } catch (error) {
+        console.error('Error updating location via websocket', error);
+      }
     });
 
     socket.on('disconnect', () => {

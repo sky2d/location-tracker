@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
 
 export default function RegistrationTracker() {
   const [isRegistered, setIsRegistered] = useState(false);
@@ -9,6 +10,7 @@ export default function RegistrationTracker() {
   const [memberId, setMemberId] = useState<string | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     let watchId: number;
@@ -20,24 +22,23 @@ export default function RegistrationTracker() {
         return;
       }
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      if (!socketRef.current) {
+        socketRef.current = io(apiUrl);
+      }
+
       setLocationError(null);
       watchId = navigator.geolocation.watchPosition(
         async (position) => {
           setLocationError(null);
           const { latitude, longitude } = position.coords;
-          try {
-            await fetch('http://localhost:4000/api/location', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                memberId,
-                lat: latitude,
-                lng: longitude,
-              }),
-            });
-          } catch (err) {
-            console.error('Failed to update location:', err);
-          }
+          
+          // Emit via WebSocket instead of HTTP POST
+          socketRef.current?.emit('send_location', {
+            memberId,
+            lat: latitude,
+            lng: longitude
+          });
         },
         (err: GeolocationPositionError) => {
           console.error('Geolocation error:', err);
@@ -64,13 +65,18 @@ export default function RegistrationTracker() {
       if (watchId !== undefined) {
         navigator.geolocation.clearWatch(watchId);
       }
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     };
   }, [isRegistered, memberId, isTracking]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:4000/api/register', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${apiUrl}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name }),
