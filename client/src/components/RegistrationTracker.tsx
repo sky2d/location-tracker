@@ -17,8 +17,10 @@ export default function RegistrationTracker() {
 
     if (isRegistered && memberId && isTracking) {
       if (!('geolocation' in navigator)) {
-        setLocationError('Geolocation is not supported by your browser.');
-        setIsTracking(false);
+        setTimeout(() => {
+          setLocationError('Geolocation is not supported by your browser.');
+          setIsTracking(false);
+        }, 0);
         return;
       }
 
@@ -27,7 +29,6 @@ export default function RegistrationTracker() {
         socketRef.current = io(apiUrl);
       }
 
-      setLocationError(null);
       watchId = navigator.geolocation.watchPosition(
         async (position) => {
           setLocationError(null);
